@@ -92,5 +92,5 @@ private:
         std::size_t _counter{};
     };
 
-    ControlBlock* _cb;
+    ControlBlock* _cb{};
 };
