@@ -23,10 +23,7 @@
 template<typename T, typename Deleter = std::function<void(T*)>>
 class SharedPointer
 {
-    using this_type = SharedPointer<T, Deleter>;
-    using const_this_type = const this_type;
-    using const_this_type_ptr = const_this_type*;
-    using const_this_type_ref = const_this_type&;
+    using const_this_type_ptr = const SharedPointer*;
 
 public:
     explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
@@ -35,10 +32,10 @@ public:
     SharedPointer(T* obj, Deleter deleter) : _controlBlock{new ControlBlock{std::move(deleter), 1, obj}}
     {}
 
-    SharedPointer(const SharedPointer<T, Deleter>& rhs)
+    SharedPointer(const SharedPointer& rhs)
     { *this = rhs; }
 
-    SharedPointer(SharedPointer<T, Deleter>&& rhs) noexcept
+    SharedPointer(SharedPointer&& rhs) noexcept
     { *this = std::move(rhs); }
 
     ~SharedPointer()
@@ -56,7 +53,7 @@ public:
     T& operator*()
     { return *const_cast<const_this_type_ptr>(this)->_controlBlock->_obj; }
 
-    SharedPointer<T, Deleter>& operator=(const SharedPointer<T, Deleter>& rhs)
+    SharedPointer& operator=(const SharedPointer& rhs)
     {
         if (this != &rhs) {
             clear();
@@ -68,7 +65,7 @@ public:
         return *this;
     }
 
-    SharedPointer<T, Deleter>& operator=(SharedPointer<T, Deleter>&& rhs) noexcept
+    SharedPointer& operator=(SharedPointer&& rhs) noexcept
     {
         if (this != &rhs) {
             clear();
