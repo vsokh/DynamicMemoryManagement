@@ -1,3 +1,5 @@
 .idea
 *.dSYM
 main
+cmake-build-debug
+

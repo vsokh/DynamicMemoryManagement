@@ -17,5 +17,6 @@ int main()
         delete s;
     }};
     sp1.printFields();
+    auto sp2 = sp1;
     return 0;
 }

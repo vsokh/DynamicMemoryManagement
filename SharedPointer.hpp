@@ -2,21 +2,23 @@
 
 // TODO: remove
 #include <iostream>
+#include <functional>
+#include <atomic>
 
 template<typename T, typename Deleter = std::function<void(T*)>>
 class SharedPointer
 {
 public:
-    SharedPointer(T* obj) : SharedPointer(obj, [](T* obj){ delete obj; })
+    explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
     {}
 
     SharedPointer(T* obj, Deleter deleter) : _cb{new ControlBlock{obj, std::move(deleter), 1}}
     {}
 
-    SharedPointer(const SharedPointer<T>& rhs)
+    SharedPointer(const SharedPointer<T, Deleter>& rhs)
     { *this = rhs; }
 
-    SharedPointer(SharedPointer<T>&& rhs)
+    SharedPointer(SharedPointer<T, Deleter>&& rhs) noexcept
     { *this = std::move(rhs); }
 
     ~SharedPointer()
@@ -39,7 +41,7 @@ public:
         return *_cb->_obj;
     }
 
-    SharedPointer<T>& operator=(const SharedPointer<T>& rhs)
+    SharedPointer<T, Deleter>& operator=(const SharedPointer<T, Deleter>& rhs)
     {
         if (this != &rhs) {
             clear();
@@ -51,7 +53,7 @@ public:
         return *this;
     }
 
-    SharedPointer<T>& operator=(SharedPointer<T>&& rhs)
+    SharedPointer<T, Deleter>& operator=(SharedPointer<T, Deleter>&& rhs) noexcept
     {
         if (this != &rhs) {
             clear();
@@ -75,6 +77,7 @@ public:
         }
     }
 
+    // TODO: remove temporary methods
     void printFields()
     {
         std::cout << "obj: " << _cb->_obj->i << std::endl;
@@ -86,6 +89,8 @@ private:
     {
         T* _obj{};
         Deleter deleter{};
-        size_t _counter{};
-    }* _cb;
+        std::size_t _counter{};
+    };
+
+    ControlBlock* _cb;
 };
