@@ -23,11 +23,16 @@
 template<typename T, typename Deleter = std::function<void(T*)>>
 class SharedPointer
 {
+    using this_type = SharedPointer<T, Deleter>;
+    using const_this_type = const this_type;
+    using const_this_type_ptr = const_this_type*;
+    using const_this_type_ref = const_this_type&;
+
 public:
     explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
     {}
 
-    SharedPointer(T* obj, Deleter deleter) : _cb{new ControlBlock{std::move(deleter), 1, obj}}
+    SharedPointer(T* obj, Deleter deleter) : _controlBlock{new ControlBlock{std::move(deleter), 1, obj}}
     {}
 
     SharedPointer(const SharedPointer<T, Deleter>& rhs)
@@ -39,22 +44,25 @@ public:
     ~SharedPointer()
     { clear(); }
 
-    T* operator->() const
-    { return _cb ? _cb->_obj : nullptr; }
+    const T* operator->() const
+    { return _controlBlock ? _controlBlock->_obj : nullptr; }
 
-    T& operator*() const
-    {
-        // TODO: handle nullptr obj
-        return *_cb->_obj;
-    }
+    const T& operator*() const
+    { return *_controlBlock->_obj; }
+
+    T* operator->()
+    { return const_cast<const_this_type_ptr>(this)->_controlBlock->_obj; }
+
+    T& operator*()
+    { return *const_cast<const_this_type_ptr>(this)->_controlBlock->_obj; }
 
     SharedPointer<T, Deleter>& operator=(const SharedPointer<T, Deleter>& rhs)
     {
         if (this != &rhs) {
             clear();
 
-            _cb = rhs._cb;
-            ++_cb->_counter;
+            _controlBlock = rhs._controlBlock;
+            ++_controlBlock->_counter;
         }
 
         return *this;
@@ -65,31 +73,31 @@ public:
         if (this != &rhs) {
             clear();
 
-            _cb = rhs._cb;
-            rhs._cb = nullptr;
+            _controlBlock = rhs._controlBlock;
+            rhs._controlBlock = nullptr;
         }
         return *this;
     }
 
     void clear()
     {
-        if (!_cb) {
+        if (!_controlBlock) {
             return;
         }
 
-        --_cb->_counter;
-        if (_cb->_counter == 0) {
-            _cb->deleter(_cb->_obj);
-            delete _cb; _cb = nullptr;
+        --_controlBlock->_counter;
+        if (_controlBlock->_counter == 0) {
+            _controlBlock->deleter(_controlBlock->_obj);
+            delete _controlBlock; _controlBlock = nullptr;
         }
     }
 
     // TODO: remove temporary methods
-    void printFields()
+    void printFields() const
     {
-        std::cout << "obj: " << _cb->_obj->i << std::endl;
-        std::cout << "counter: " << _cb->_counter << std::endl;
-        std::cout << "sz: " << sizeof(*_cb) << std::endl;
+        std::cout << "obj: " << _controlBlock->_obj->i << std::endl;
+        std::cout << "counter: " << _controlBlock->_counter << std::endl;
+        std::cout << "sz: " << sizeof(*_controlBlock) << std::endl;
     }
 
 private:
@@ -100,5 +108,5 @@ private:
         T* _obj{};
     };
 
-    ControlBlock* _cb{};
+    ControlBlock* _controlBlock{};
 };
