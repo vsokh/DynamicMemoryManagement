@@ -2,8 +2,23 @@
 
 // TODO: remove
 #include <iostream>
+
 #include <functional>
 #include <atomic>
+
+// TODO: add an allocator
+// TODO: support weak pointers
+
+// Modifiers:
+// TODO: add reset
+// TODO: add swap
+
+// Observers:
+// TODO: add get
+// TODO: operator[]
+// TODO: operator bool
+// TODO: use_count
+// TODO: unique
 
 template<typename T, typename Deleter = std::function<void(T*)>>
 class SharedPointer
@@ -25,15 +40,7 @@ public:
     { clear(); }
 
     T* operator->() const
-    {
-        // TODO: remove
-        if (_cb == nullptr) {
-            std::cout << "obj is nullptr" << std::endl;
-            return nullptr;
-        }
-
-        return _cb ? _cb->_obj : nullptr;
-    }
+    { return _cb ? _cb->_obj : nullptr; }
 
     T& operator*() const
     {
