@@ -12,7 +12,7 @@ public:
     explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
     {}
 
-    SharedPointer(T* obj, Deleter deleter) : _cb{new ControlBlock{obj, std::move(deleter), 1}}
+    SharedPointer(T* obj, Deleter deleter) : _cb{new ControlBlock{std::move(deleter), 1, obj}}
     {}
 
     SharedPointer(const SharedPointer<T, Deleter>& rhs)
@@ -82,14 +82,15 @@ public:
     {
         std::cout << "obj: " << _cb->_obj->i << std::endl;
         std::cout << "counter: " << _cb->_counter << std::endl;
+        std::cout << "sz: " << sizeof(*_cb) << std::endl;
     }
 
 private:
     struct ControlBlock
     {
-        T* _obj{};
         Deleter deleter{};
-        std::size_t _counter{};
+        std::atomic<std::size_t> _counter{};
+        T* _obj{};
     };
 
     ControlBlock* _cb{};
