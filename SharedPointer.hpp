@@ -14,8 +14,6 @@
 // TODO: add swap
 
 // Observers:
-// TODO: use_count
-// TODO: unique
 // TODO: operator[]
 
 template<typename T,
@@ -23,10 +21,12 @@ template<typename T,
 class SharedPointer
 {
 public:
-    explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
+    explicit SharedPointer(T* obj)
+        : SharedPointer(obj, [](T* t){ delete t; })
     {}
 
-    SharedPointer(T* obj, Deleter deleter) : _controlBlock{new ControlBlock{std::move(deleter), 1, obj}}
+    SharedPointer(T* obj, Deleter deleter)
+        : _controlBlock{new ControlBlock{std::move(deleter), obj ? 1 : 0, obj}}
     {}
 
     SharedPointer(const SharedPointer& rhs)
@@ -73,6 +73,9 @@ public:
 
     explicit operator bool() const noexcept
     { return _controlBlock && _controlBlock->_counter > 0; }
+
+    std::size_t use_count() const noexcept
+    { return _controlBlock->_counter; }
 
     void clear()
     {
