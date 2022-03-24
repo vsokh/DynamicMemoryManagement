@@ -14,7 +14,6 @@
 // TODO: add swap
 
 // Observers:
-// TODO: add get
 // TODO: use_count
 // TODO: unique
 // TODO: operator[]
@@ -68,6 +67,7 @@ public:
     T* operator->() const noexcept
     { return get(); }
 
+    // TODO: fix this potential lost of common sense
     T& operator*() const noexcept
     { return *get(); }
 
@@ -84,7 +84,7 @@ public:
             --_controlBlock->_counter;
         }
         if (_controlBlock->_counter == 0) {
-            _controlBlock->deleter(_controlBlock->_obj);
+            _controlBlock->_deleter(_controlBlock->_obj);
             delete _controlBlock; _controlBlock = nullptr;
         }
     }
@@ -100,7 +100,7 @@ public:
 private:
     struct ControlBlock
     {
-        Deleter deleter{};
+        Deleter _deleter{};
         std::atomic<std::size_t> _counter{};
         T* _obj{};
     };
