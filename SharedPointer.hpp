@@ -15,16 +15,14 @@
 
 // Observers:
 // TODO: add get
-// TODO: operator[]
-// TODO: operator bool
 // TODO: use_count
 // TODO: unique
+// TODO: operator[]
 
-template<typename T, typename Deleter = std::function<void(T*)>>
+template<typename T,
+         typename Deleter = std::function<void(T*)>>
 class SharedPointer
 {
-    using const_this_type_ptr = const SharedPointer*;
-
 public:
     explicit SharedPointer(T* obj) : SharedPointer(obj, [](T* t){ delete t; })
     {}
@@ -40,18 +38,6 @@ public:
 
     ~SharedPointer()
     { clear(); }
-
-    const T* operator->() const
-    { return _controlBlock ? _controlBlock->_obj : nullptr; }
-
-    const T& operator*() const
-    { return *_controlBlock->_obj; }
-
-    T* operator->()
-    { return const_cast<const_this_type_ptr>(this)->_controlBlock->_obj; }
-
-    T& operator*()
-    { return *const_cast<const_this_type_ptr>(this)->_controlBlock->_obj; }
 
     SharedPointer& operator=(const SharedPointer& rhs)
     {
@@ -76,13 +62,27 @@ public:
         return *this;
     }
 
+    T* get() const noexcept
+    { return _controlBlock ? _controlBlock->_obj : nullptr; }
+
+    T* operator->() const noexcept
+    { return get(); }
+
+    T& operator*() const noexcept
+    { return *get(); }
+
+    explicit operator bool() const noexcept
+    { return _controlBlock && _controlBlock->_counter > 0; }
+
     void clear()
     {
         if (!_controlBlock) {
             return;
         }
 
-        --_controlBlock->_counter;
+        if (_controlBlock->_counter > 0) {
+            --_controlBlock->_counter;
+        }
         if (_controlBlock->_counter == 0) {
             _controlBlock->deleter(_controlBlock->_obj);
             delete _controlBlock; _controlBlock = nullptr;
@@ -92,7 +92,7 @@ public:
     // TODO: remove temporary methods
     void printFields() const
     {
-        std::cout << "obj: " << _controlBlock->_obj->i << std::endl;
+        std::cout << "i: " << _controlBlock->_obj->i << std::endl;
         std::cout << "counter: " << _controlBlock->_counter << std::endl;
         std::cout << "sz: " << sizeof(*_controlBlock) << std::endl;
     }
