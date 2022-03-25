@@ -1,5 +1,7 @@
 #include "SharedPointer.hpp"
 
+#include <iostream>
+
 // For testing
 struct Foo {
     Foo(int _val) : val(_val) { std::cout << "Foo...\n"; }

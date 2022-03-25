@@ -1,8 +1,5 @@
 #pragma once
 
-// TODO: remove
-#include <iostream>
-
 #include <functional>
 #include <atomic>
 
@@ -75,7 +72,7 @@ public:
         return get();
     }
 
-    // TODO: fix this potential lost of common sense
+    // TODO: fix this potential explosion
     T& operator*() const noexcept
     {
         return *get();
@@ -110,14 +107,6 @@ public:
     void swap(SharedPointer& rhs)
     {
         std::swap(_controlBlock, rhs._controlBlock);
-    }
-
-    // TODO: remove temporary methods
-    void printFields() const
-    {
-        std::cout << "i: " << _controlBlock->_obj->i << std::endl;
-        std::cout << "counter: " << _controlBlock->_counter << std::endl;
-        std::cout << "sz: " << sizeof(*_controlBlock) << std::endl;
     }
 
 private:
