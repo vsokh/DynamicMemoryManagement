@@ -22,20 +22,30 @@ class SharedPointer
 public:
     explicit SharedPointer(T* obj)
         : SharedPointer(obj, createDeleter())
-    {}
+    {
+    }
 
     SharedPointer(T* obj, Deleter deleter)
         : _controlBlock{createControlBlock(obj, std::move(deleter))}
-    {}
+    {
+    }
 
     SharedPointer(const SharedPointer& rhs)
-    { *this = rhs; }
+        : _controlBlock{rhs._controlBlock}
+    {
+        increment();
+    }
 
     SharedPointer(SharedPointer&& rhs) noexcept
-    { *this = std::move(rhs); }
+        : _controlBlock{rhs._controlBlock}
+    {
+        rhs._controlBlock = nullptr;
+    }
 
     ~SharedPointer()
-    { clear(); }
+    {
+        clear();
+    }
 
     SharedPointer& operator=(const SharedPointer& rhs)
     {
@@ -43,7 +53,7 @@ public:
             clear();
 
             _controlBlock = rhs._controlBlock;
-            ++_controlBlock->_counter;
+            increment();
         }
 
         return *this;
@@ -52,8 +62,6 @@ public:
     SharedPointer& operator=(SharedPointer&& rhs) noexcept
     {
         if (this != &rhs) {
-            clear();
-
             _controlBlock = rhs._controlBlock;
             rhs._controlBlock = nullptr;
         }
@@ -61,31 +69,35 @@ public:
     }
 
     T* get() const noexcept
-    { return _controlBlock ? _controlBlock->_obj : nullptr; }
+    {
+        return _controlBlock ? _controlBlock->_obj : nullptr;
+    }
 
     T* operator->() const noexcept
-    { return get(); }
+    {
+        return get();
+    }
 
     // TODO: fix this potential lost of common sense
     T& operator*() const noexcept
-    { return *get(); }
+    {
+        return *get();
+    }
 
     explicit operator bool() const noexcept
-    { return _controlBlock && _controlBlock->_counter > 0; }
+    {
+        return use_count();
+    }
 
     std::size_t use_count() const noexcept
-    { return _controlBlock->_counter; }
+    {
+        return _controlBlock ? _controlBlock->_counter.load() : 0;
+    }
 
     void clear()
     {
-        if (!_controlBlock) {
-            return;
-        }
-
-        if (_controlBlock->_counter > 0) {
-            --_controlBlock->_counter;
-        }
-        if (_controlBlock->_counter == 0) {
+        decrement();
+        if (_controlBlock && _controlBlock->_counter == 0) {
             _controlBlock->_deleter(_controlBlock->_obj);
             delete _controlBlock; _controlBlock = nullptr;
         }
@@ -107,6 +119,20 @@ public:
     }
 
 private:
+    void increment()
+    {
+        if (use_count()) {
+            ++_controlBlock->_counter;
+        }
+    }
+
+    void decrement()
+    {
+        if (use_count()) {
+            --_controlBlock->_counter;
+        }
+    }
+
     struct ControlBlock;
     static ControlBlock* createControlBlock(T* obj, Deleter deleter)
     {

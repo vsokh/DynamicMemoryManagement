@@ -12,9 +12,9 @@ struct TD;
 
 int main()
 {
-    SharedPointer<S> sp1{nullptr};
+    SharedPointer<S> sp1{new S};
     std::cout << sp1.use_count() << std::endl;
-    sp1.reset(nullptr);
-    std::cout << sp1.use_count() << std::endl;
+    auto sp2 = std::move(sp1);
+    std::cout << sp2.use_count() << std::endl;
     return 0;
 }
