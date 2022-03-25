@@ -10,7 +10,6 @@
 // TODO: support weak pointers
 
 // Modifiers:
-// TODO: add reset
 // TODO: add swap
 
 // Observers:
@@ -22,11 +21,11 @@ class SharedPointer
 {
 public:
     explicit SharedPointer(T* obj)
-        : SharedPointer(obj, [](T* t){ delete t; })
+        : SharedPointer(obj, createDeleter())
     {}
 
     SharedPointer(T* obj, Deleter deleter)
-        : _controlBlock{new ControlBlock{std::move(deleter), obj ? 1 : 0, obj}}
+        : _controlBlock{createControlBlock(obj, std::move(deleter))}
     {}
 
     SharedPointer(const SharedPointer& rhs)
@@ -92,12 +91,31 @@ public:
         }
     }
 
+    void reset(T* obj, Deleter deleter = createDeleter())
+    {
+        clear();
+
+        _controlBlock = createControlBlock(obj, std::move(deleter));
+    }
+
     // TODO: remove temporary methods
     void printFields() const
     {
         std::cout << "i: " << _controlBlock->_obj->i << std::endl;
         std::cout << "counter: " << _controlBlock->_counter << std::endl;
         std::cout << "sz: " << sizeof(*_controlBlock) << std::endl;
+    }
+
+private:
+    struct ControlBlock;
+    static ControlBlock* createControlBlock(T* obj, Deleter deleter)
+    {
+        return new ControlBlock{std::move(deleter), obj ? 1 : 0, obj};
+    }
+
+    static std::function<void(T*)> createDeleter()
+    {
+        return [](T* toDelete){ delete toDelete; };
     }
 
 private:

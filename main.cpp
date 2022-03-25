@@ -14,5 +14,7 @@ int main()
 {
     SharedPointer<S> sp1{nullptr};
     std::cout << sp1.use_count() << std::endl;
+    sp1.reset(nullptr);
+    std::cout << sp1.use_count() << std::endl;
     return 0;
 }
