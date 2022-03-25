@@ -9,9 +9,6 @@
 // TODO: add an allocator
 // TODO: support weak pointers
 
-// Modifiers:
-// TODO: add swap
-
 // Observers:
 // TODO: operator[]
 
@@ -103,11 +100,16 @@ public:
         }
     }
 
-    void reset(T* obj, Deleter deleter = createDeleter())
+    void reset(T* obj = nullptr, Deleter deleter = createDeleter())
     {
         clear();
 
         _controlBlock = createControlBlock(obj, std::move(deleter));
+    }
+
+    void swap(SharedPointer& rhs)
+    {
+        std::swap(_controlBlock, rhs._controlBlock);
     }
 
     // TODO: remove temporary methods

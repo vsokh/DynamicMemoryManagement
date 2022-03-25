@@ -1,9 +1,11 @@
 #include "SharedPointer.hpp"
 
 // For testing
-struct S
-{
-    int i{5};
+struct Foo {
+    Foo(int _val) : val(_val) { std::cout << "Foo...\n"; }
+    ~Foo() { std::cout << "~Foo...\n"; }
+    std::string print() { return std::to_string(val); }
+    int val;
 };
 
 // For type checking
@@ -12,9 +14,20 @@ struct TD;
 
 int main()
 {
-    SharedPointer<S> sp1{new S};
-    std::cout << sp1.use_count() << std::endl;
-    auto sp2 = std::move(sp1);
-    std::cout << sp2.use_count() << std::endl;
-    return 0;
+    std::shared_ptr<Foo> p1 = std::make_shared<Foo>(100);
+    std::shared_ptr<Foo> p2 = std::make_shared<Foo>(200);
+    auto print = [&]() {
+        std::cout << " p1=" << (p1 ? p1->print() : "nullptr");
+        std::cout << " p2=" << (p2 ? p2->print() : "nullptr") << '\n';
+    };
+    print();
+
+    p1.swap(p2);
+    print();
+
+    p1.reset();
+    print();
+
+    p1.swap(p2);
+    print();
 }
