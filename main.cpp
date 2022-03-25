@@ -14,8 +14,8 @@ struct TD;
 
 int main()
 {
-    std::shared_ptr<Foo> p1 = std::make_shared<Foo>(100);
-    std::shared_ptr<Foo> p2 = std::make_shared<Foo>(200);
+    SharedPointer<Foo> p1(new Foo{100});
+    SharedPointer<Foo> p2(new Foo{200});
     auto print = [&]() {
         std::cout << " p1=" << (p1 ? p1->print() : "nullptr");
         std::cout << " p2=" << (p2 ? p2->print() : "nullptr") << '\n';
