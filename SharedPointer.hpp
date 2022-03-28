@@ -9,29 +9,44 @@
 // Observers:
 // TODO: operator[]
 
-template<typename T,
-         typename Deleter = std::function<void(T*)>>
+namespace utils
+{
+
+template<typename T>
+using DeleterFunc = std::function<void(T*)>;
+
+template<typename T, typename Deleter = DeleterFunc<T>>
+struct ControlBlock
+{
+    Deleter _deleter{};
+    std::atomic<std::size_t> _counter{};
+    T *_obj{};
+};
+
+}
+
+template<typename T, typename Deleter = utils::DeleterFunc<T>>
 class SharedPointer
 {
 public:
     explicit SharedPointer(T* obj)
-        : SharedPointer(obj, createDeleter())
+            : SharedPointer(obj, createDeleter())
     {
     }
 
     SharedPointer(T* obj, Deleter deleter)
-        : _controlBlock{createControlBlock(obj, std::move(deleter))}
+            : _controlBlock{createControlBlock(obj, std::move(deleter))}
     {
     }
 
     SharedPointer(const SharedPointer& rhs)
-        : _controlBlock{rhs._controlBlock}
+            : _controlBlock{rhs._controlBlock}
     {
         increment();
     }
 
     SharedPointer(SharedPointer&& rhs) noexcept
-        : _controlBlock{rhs._controlBlock}
+            : _controlBlock{rhs._controlBlock}
     {
         rhs._controlBlock = nullptr;
     }
@@ -56,8 +71,7 @@ public:
     SharedPointer& operator=(SharedPointer&& rhs) noexcept
     {
         if (this != &rhs) {
-            _controlBlock = rhs._controlBlock;
-            rhs._controlBlock = nullptr;
+            swap(rhs);
         }
         return *this;
     }
@@ -124,24 +138,51 @@ private:
         }
     }
 
-    struct ControlBlock;
-    static ControlBlock* createControlBlock(T* obj, Deleter deleter)
+    static utils::ControlBlock<T, Deleter>* createControlBlock(T* obj, Deleter deleter)
     {
-        return new ControlBlock{std::move(deleter), obj ? 1 : 0, obj};
+        return new utils::ControlBlock<T, Deleter>{std::move(deleter), obj ? 1 : 0, obj};
     }
 
-    static std::function<void(T*)> createDeleter()
+    static utils::DeleterFunc<T> createDeleter()
     {
         return [](T* toDelete){ delete toDelete; };
     }
 
 private:
-    struct ControlBlock
-    {
-        Deleter _deleter{};
-        std::atomic<std::size_t> _counter{};
-        T* _obj{};
-    };
-
-    ControlBlock* _controlBlock{};
+    utils::ControlBlock<T, Deleter>* _controlBlock{};
 };
+
+//Basic
+//constructor
+//destructor
+//operator= assigns the weak_ptr
+
+//Modifiers
+//reset: releases the ownership of the managed object
+//swap: swaps the managed objects
+
+//Observers
+//use_count: returns the number of shared_ptr objects that manage the object
+//expired: checks whether the referenced object was already deleted
+//lock: creates a shared_ptr that manages the referenced object
+//owner_before: provides owner-based ordering of weak pointers
+
+// Exists to track(non-own) an object, or to break cyclic references
+// To use an object, pointed by the WeakPointer you need to cast it to the shared pointer.
+
+//template<typename T>
+//class WeakPointer
+//{
+//public:
+//    WeakPointer(const WeakPointer<T>& rhs)
+//    {}
+//
+//    WeakPointer(const SharedPointer<T>& rhs)
+//    {}
+//
+//    ~WeakPointer()
+//    {}
+//
+//private:
+//    ControlBlock* _controlBlock{};
+//};
