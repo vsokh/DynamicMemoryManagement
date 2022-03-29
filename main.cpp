@@ -17,6 +17,7 @@ struct TD;
 
 int main()
 {
-    SharedPointer<Foo> sp(new Foo(132));
+    SharedPointer<Foo> sp(new Foo(123));
+    auto sp1 = sp;
     return 0;
 }
