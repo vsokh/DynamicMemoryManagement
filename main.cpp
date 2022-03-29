@@ -1,4 +1,4 @@
-#include "SharedPointer.hpp"
+#include "Memory.hpp"
 
 #include <iostream>
 #include <memory>
@@ -11,13 +11,17 @@ struct Foo {
     int val;
 };
 
-// For type checking
-template<typename T>
-struct TD;
-
 int main()
 {
-    SharedPointer<Foo> sp(new Foo(123));
-    auto sp1 = sp;
+    using namespace mem;
+
+    SharedPtr<Foo> sp1{new Foo(123)};
+    WeakPtr<Foo> wp1 = sp1;
+
+    SharedPtr<Foo> sp2{new Foo(123)};
+    WeakPtr<Foo> wp2 = sp2;
+
+    wp1 = std::move(wp2);
+
     return 0;
 }

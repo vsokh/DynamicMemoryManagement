@@ -5,6 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(.)
 
-add_executable(SharedPointer
+add_executable(memory
         main.cpp
-        SharedPointer.hpp)
+        Memory.hpp)
