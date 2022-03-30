@@ -8,7 +8,7 @@
 // Observers:
 // TODO: operator[]
 
-namespace mem {
+namespace base {
 
     template<typename T>
     class WeakPtr;
@@ -19,28 +19,34 @@ namespace mem {
         SharedPtr() = default;
 
         explicit SharedPtr(T *obj)
-                : SharedPtr(obj, details::createDeleter<T, Deleter>()) {
+                : SharedPtr(obj, details::createDeleter<T, Deleter>())
+        {
         }
 
         SharedPtr(T *obj, Deleter deleter)
-                : _controlBlock{details::createControlBlock(obj, std::move(deleter))} {
+                : _controlBlock{details::createControlBlock(obj, std::move(deleter))}
+        {
         }
 
         SharedPtr(const SharedPtr &rhs)
-                : _controlBlock{rhs._controlBlock} {
+                : _controlBlock{rhs._controlBlock}
+        {
             details::increment(_controlBlock);
         }
 
         SharedPtr(SharedPtr &&rhs) noexcept
-                : _controlBlock{rhs._controlBlock} {
+                : _controlBlock{rhs._controlBlock}
+        {
             rhs._controlBlock = nullptr;
         }
 
-        ~SharedPtr() {
+        ~SharedPtr()
+        {
             clear();
         }
 
-        SharedPtr &operator=(const SharedPtr &rhs) {
+        SharedPtr &operator=(const SharedPtr &rhs)
+        {
             if (this != &rhs) {
                 clear();
 
@@ -52,46 +58,55 @@ namespace mem {
         }
 
         // TODO: rethink, test
-        SharedPtr &operator=(SharedPtr &&rhs) noexcept {
+        SharedPtr &operator=(SharedPtr &&rhs) noexcept
+        {
             if (this != &rhs) {
                 swap(rhs);
             }
             return *this;
         }
 
-        T *operator->() const noexcept {
+        T *operator->() const noexcept
+        {
             return get();
         }
 
-        T &operator*() const noexcept {
+        T &operator*() const noexcept
+        {
             return *get();
         }
 
-        explicit operator bool() const noexcept {
+        explicit operator bool() const noexcept
+        {
             return use_count();
         }
 
-        T *get() const noexcept {
+        T *get() const noexcept
+        {
             return _controlBlock ? _controlBlock->_obj : nullptr;
         }
 
-        std::size_t use_count() const noexcept {
+        std::size_t use_count() const noexcept
+        {
             return details::use_count(_controlBlock);
         }
 
-        void clear() {
+        void clear()
+        {
             details::decrement(_controlBlock);
             details::releaseObj(_controlBlock);
             details::release(&_controlBlock);
         }
 
-        void reset(T *obj = nullptr, Deleter deleter = details::createDeleter<T, Deleter>()) {
+        void reset(T *obj = nullptr, Deleter deleter = details::createDeleter<T, Deleter>())
+        {
             clear();
 
             _controlBlock = createControlBlock(obj, std::move(deleter));
         }
 
-        void swap(SharedPtr &rhs) {
+        void swap(SharedPtr &rhs)
+        {
             std::swap(_controlBlock, rhs._controlBlock);
         }
 
@@ -102,4 +117,4 @@ namespace mem {
         details::ControlBlock<T, Deleter> *_controlBlock{};
     };
 
-} // namespace mem
+} // namespace base

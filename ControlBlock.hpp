@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <atomic>
-#include <iostream>
 
 namespace details
 {
@@ -18,8 +17,6 @@ namespace details
         std::atomic<CounterType> _sharedCounter{};
         std::atomic<CounterType> _weakCounter{};
         T *_obj{};
-
-        ~ControlBlock() { std::cout << "~ControlBlock... \n"; }
     };
 
     template<typename T, typename Deleter = DeleterFunc<T>>
