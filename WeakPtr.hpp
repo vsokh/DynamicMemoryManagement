@@ -2,7 +2,6 @@
 
 #include "ControlBlock.hpp"
 
-
 // Modifiers:
 // TODO: reset: releases the ownership of the managed object
 // TODO: swap: swaps the managed objects

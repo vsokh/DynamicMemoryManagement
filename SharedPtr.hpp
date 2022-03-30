@@ -94,7 +94,7 @@ namespace base
         {
             clear();
 
-            _controlBlock = createControlBlock(obj, std::move(deleter));
+            _controlBlock = details::createControlBlock(obj, std::move(deleter));
         }
 
         void swap(SharedPtr &rhs) noexcept

@@ -5,7 +5,6 @@
 
 namespace details
 {
-
     template<typename T>
     using DeleterFunc = std::function<void(T*)>;
     using CounterType = std::size_t;
