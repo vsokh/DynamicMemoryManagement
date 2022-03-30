@@ -14,6 +14,24 @@ constexpr int testValue = 123;
 
 void testSharedPtr()
 {
+    // TODO: default constructor
+
+    // TODO: copy-constructor
+    // TODO: copy-assignment-operator
+    // TODO: self copy-assignment
+
+    // TODO: move-constructor
+    // TODO: move-assignment-operator
+    // TODO: self move-assignment
+
+    // TODO: operator*
+    // TODO: operator->
+    // TODO: operator bool
+
+    // TODO: swap
+    // TODO: reset
+    // TODO: get
+    // TODO: use_count
 }
 
 void testWeakPtr()
@@ -28,14 +46,14 @@ void testWeakPtr()
         WeakPtr wp1 = sp;
         WeakPtr wp2 = wp1;
     }
-    { // copy-constructor with WeakPtrs created from a different SharedPtr
+    { // copy-constructor with WeakPtrs created from different SharedPtrs
         SharedPtr<Foo> sp1{new Foo(testValue)};
         WeakPtr wp1 = sp1;
 
         SharedPtr<Foo> sp2{new Foo(testValue)};
         WeakPtr wp2 = wp1;
     }
-    { // copy-assignment-operator with WeakPtrs created from a different SharedPtr
+    { // copy-assignment-operator with WeakPtrs created from different SharedPtrs
         SharedPtr<Foo> sp1{new Foo(testValue)};
         WeakPtr wp1 = sp1;
 

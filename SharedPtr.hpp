@@ -2,14 +2,13 @@
 
 #include "ControlBlock.hpp"
 
-// TODO: add an allocator
-// TODO: support weak pointers
+// TODO: support custom allocator
+// TODO: support arrays, operator[]
+// TODO: provide non-member functions
+// TODO: ensure correctness in a multi-threaded environment
 
-// Observers:
-// TODO: operator[]
-
-namespace base {
-
+namespace base
+{
     template<typename T>
     class WeakPtr;
 
@@ -91,13 +90,6 @@ namespace base {
             return details::use_count(_controlBlock);
         }
 
-        void clear()
-        {
-            details::decrement(_controlBlock);
-            details::releaseObj(_controlBlock);
-            details::release(&_controlBlock);
-        }
-
         void reset(T *obj = nullptr, Deleter deleter = details::createDeleter<T, Deleter>())
         {
             clear();
@@ -105,9 +97,17 @@ namespace base {
             _controlBlock = createControlBlock(obj, std::move(deleter));
         }
 
-        void swap(SharedPtr &rhs)
+        void swap(SharedPtr &rhs) noexcept
         {
             std::swap(_controlBlock, rhs._controlBlock);
+        }
+
+    private:
+        void clear()
+        {
+            details::decrement(_controlBlock);
+            details::releaseObj(_controlBlock);
+            details::release(&_controlBlock);
         }
 
     private:

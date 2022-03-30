@@ -96,8 +96,8 @@ namespace details
     template<typename T, typename Deleter = DeleterFunc<T>>
     details::ControlBlock<T, Deleter>* createControlBlock(T* obj, Deleter deleter)
     {
-        const auto& exist = obj != nullptr;
-        return new ControlBlock<T, Deleter>{std::move(deleter), exist, exist, obj};
+        const auto& objAmount = obj != nullptr;
+        return new ControlBlock<T, Deleter>{std::move(deleter), objAmount, objAmount, obj};
     }
 
     template<typename T, typename Deleter = DeleterFunc<T>>

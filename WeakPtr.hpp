@@ -2,25 +2,26 @@
 
 #include "ControlBlock.hpp"
 
-// Description: Exists to track(not own) an object, or to break cyclic references.
-//              To use an object, pointed by WeakPtr, you need to cast it to the shared pointer.
 
-// API:
 // Modifiers:
-// reset: releases the ownership of the managed object
-// swap: swaps the managed objects
+// TODO: reset: releases the ownership of the managed object
+// TODO: swap: swaps the managed objects
 
 // Observers:
-// use_count: returns the number of SharedPtr objects that manage the object
-// expired: checks whether the referenced object was already deleted
-// lock: creates a SharedPtr that manages the referenced object
-// owner_before: provides owner-based ordering of weak pointers
+// TODO: use_count: returns the number of SharedPtr objects that manage the object
+// TODO: expired: checks whether the referenced object was already deleted
+// TODO: lock: creates a SharedPtr that manages the referenced object
+// TODO: owner_before: provides owner-based ordering of weak pointers
 
-namespace base {
+// TODO: ensure correctness in a multi-threaded environment
 
+namespace base
+{
     template<typename T, typename Deleter>
     class SharedPtr;
 
+    // Description: Exists to track(not own) an object, or to break cyclic references.
+    //              To use an object, pointed by WeakPtr, you need to cast it to the shared pointer.
     template<typename T>
     class WeakPtr {
     public:
