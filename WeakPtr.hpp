@@ -76,7 +76,7 @@ namespace base
 
         std::size_t use_count() const noexcept
         {
-            return details::weak_use_count(_controlBlock);
+            return details::use_count(_controlBlock);
         }
 
     private:

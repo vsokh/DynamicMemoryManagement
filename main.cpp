@@ -108,11 +108,17 @@ void testWeakPtr()
 
     { // default constructor
         WeakPtr<Foo> wp;
+
+        std::cout << (0 == wp.use_count()) << std::endl;
     }
     { // copy-constructor with WeakPtr created from the same SharedPtr
         SharedPtr sp{new Foo(testValue)};
         WeakPtr wp1 = sp;
         WeakPtr wp2 = wp1;
+
+        std::cout << (1 == sp.use_count()) << std::endl;
+        std::cout << (1 == wp1.use_count()) << std::endl;
+        std::cout << (1 == wp2.use_count()) << std::endl;
     }
     { // copy-constructor with WeakPtrs created from different SharedPtrs
         SharedPtr sp1{new Foo(testValue)};
@@ -120,6 +126,10 @@ void testWeakPtr()
 
         SharedPtr sp2{new Foo(testValue)};
         WeakPtr wp2 = wp1;
+
+        std::cout << (1 == sp1.use_count()) << std::endl;
+        std::cout << (1 == sp2.use_count()) << std::endl;
+        std::cout << (1 == wp1.use_count()) << std::endl;
     }
     { // copy-assignment-operator with WeakPtrs created from different SharedPtrs
         SharedPtr sp1{new Foo(testValue)};
@@ -129,21 +139,34 @@ void testWeakPtr()
         WeakPtr wp2 = sp2;
 
         wp2 = wp1;
+        std::cout << (1 == sp1.use_count()) << std::endl;
+        std::cout << (1 == sp2.use_count()) << std::endl;
+        std::cout << (1 == wp1.use_count()) << std::endl;
     }
     { // self copy-assignment-operator
         SharedPtr sp{new Foo(testValue)};
         WeakPtr wp1 = sp;
         WeakPtr wp2 = wp1;
+
+        std::cout << (1 == sp.use_count()) << std::endl;
+        std::cout << (1 == wp1.use_count()) << std::endl;
+        std::cout << (1 == wp2.use_count()) << std::endl;
     }
     { // move-constructor with WeakPtrs created from the same SharedPtr
         SharedPtr sp{new Foo(testValue)};
         WeakPtr wp1 = sp;
         WeakPtr wp2 = std::move(wp1);
+
+        std::cout << (1 == sp.use_count()) << std::endl;
+        std::cout << (1 == wp2.use_count()) << std::endl;
     }
     { // self move-assignment
         SharedPtr sp{new Foo(testValue)};
-        WeakPtr wp1 = sp;
-        wp1 = std::move(wp1);
+        WeakPtr wp = sp;
+        wp = std::move(wp);
+
+        std::cout << (1 == wp.use_count()) << std::endl;
+        std::cout << (1 == sp.use_count()) << std::endl;
     }
     { // move-assignment-operator with WeakPtrs created from different SharedPtrs
         SharedPtr sp1{new Foo(testValue)};
@@ -153,6 +176,10 @@ void testWeakPtr()
         WeakPtr wp2 = sp2;
 
         wp2 = std::move(wp1);
+
+        std::cout << (1 == sp1.use_count()) << std::endl;
+        std::cout << (1 == sp2.use_count()) << std::endl;
+        std::cout << (1 == wp2.use_count()) << std::endl;
     }
 }
 
