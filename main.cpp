@@ -181,6 +181,35 @@ void testWeakPtr()
         std::cout << (1 == sp2.use_count()) << std::endl;
         std::cout << (1 == wp2.use_count()) << std::endl;
     }
+    { // reset
+        SharedPtr sp{new Foo{123}}, sp1 = sp, sp2 = sp1;
+        WeakPtr wp = sp;
+        std::cout << (3 == sp.use_count()) << std::endl;
+        std::cout << (3 == wp.use_count()) << std::endl;
+        wp.reset();
+        std::cout << (3 == sp.use_count()) << std::endl;
+        std::cout << (0 == wp.use_count()) << std::endl;
+    }
+    { // lock
+        SharedPtr sp{new Foo{123}};
+        WeakPtr wp = sp;
+        auto sp2 = wp.lock();
+        std::cout << (2 == sp2.use_count()) << std::endl;
+    }
+    { // swap
+        int val1 = 123;
+        int val2 = 321;
+
+        SharedPtr sp1{new Foo{val1}};
+        SharedPtr sp2{new Foo{val2}};
+
+        WeakPtr wp1 = sp1;
+        WeakPtr wp2 = sp2;
+
+        wp1.swap(wp2);
+        auto sp = wp1.lock();
+        std::cout << (val2 == sp->val) << std::endl;
+    }
 }
 
 int main()

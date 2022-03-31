@@ -33,6 +33,12 @@ namespace base
             details::increment(_controlBlock);
         }
 
+        explicit SharedPtr(const WeakPtr<T> &rhs)
+                : _controlBlock{rhs._controlBlock}
+        {
+            details::increment(_controlBlock);
+        }
+
         SharedPtr(SharedPtr &&rhs) noexcept
                 : _controlBlock{rhs._controlBlock}
         {

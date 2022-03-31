@@ -2,14 +2,7 @@
 
 #include "ControlBlock.hpp"
 
-// Modifiers:
-// TODO: reset: releases the ownership of the managed object
-// TODO: swap: swaps the managed objects
-
 // Observers:
-// TODO: use_count: returns the number of SharedPtr objects that manage the object
-// TODO: expired: checks whether the referenced object was already deleted
-// TODO: lock: creates a SharedPtr that manages the referenced object
 // TODO: owner_before: provides owner-based ordering of weak pointers
 
 // TODO: ensure correctness in a multi-threaded environment
@@ -54,6 +47,7 @@ namespace base
 
         WeakPtr &operator=(const SharedPtr<T> &rhs)
         {
+            clear();
             copy(rhs);
             return *this;
         }
@@ -74,6 +68,27 @@ namespace base
             clear();
         }
 
+        bool expired() const noexcept
+        {
+            return use_count() == 0;
+        }
+
+        SharedPtr<T> lock() const noexcept
+        {
+            return expired() ? SharedPtr<T>{} : SharedPtr<T>{*this};
+        }
+
+        void reset() noexcept
+        {
+            clear();
+            _controlBlock = nullptr;
+        }
+
+        void swap(WeakPtr& rhs) noexcept
+        {
+            std::swap(_controlBlock, rhs._controlBlock);
+        }
+
         std::size_t use_count() const noexcept
         {
             return details::use_count(_controlBlock);
@@ -89,13 +104,14 @@ namespace base
         template<typename SmartPointer>
         void copy(const SmartPointer& ptr)
         {
-            clear();
-
             _controlBlock = ptr._controlBlock;
             details::incrementWeak(_controlBlock);
         }
 
     private:
+        template<typename Y, typename Deleter>
+        friend class SharedPtr;
+
         details::ControlBlock<T> *_controlBlock{};
     };
 } // namespace base
