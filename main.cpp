@@ -100,6 +100,13 @@ void testSharedPtr()
         auto obj = sp.get();
         std::cout << (obj->val == testValue) << std::endl;
     }
+    { // owner_before
+        auto sp1 = base::SharedPtr<Foo>{new Foo{123}};
+        auto sp2 = base::SharedPtr<Foo>{new Foo{123}};
+        std::cout << !sp1.owner_before(sp1) << std::endl;
+        std::cout << sp1.owner_before(sp2) << std::endl;
+        std::cout << !sp2.owner_before(sp1) << std::endl;
+    }
 }
 
 void testWeakPtr()
@@ -209,6 +216,19 @@ void testWeakPtr()
         wp1.swap(wp2);
         auto sp = wp1.lock();
         std::cout << (val2 == sp->val) << std::endl;
+    }
+    { // owner_before
+        auto sp1 = base::SharedPtr<Foo>{new Foo{123}};
+        auto sp2 = base::SharedPtr<Foo>{new Foo{123}};
+        std::cout << !sp1.owner_before(sp1) << std::endl;
+        std::cout << sp1.owner_before(sp2) << std::endl;
+        std::cout << !sp2.owner_before(sp1) << std::endl;
+
+        auto wp1 = sp1;
+        auto wp2 = sp2;
+        std::cout << !wp1.owner_before(wp1) << std::endl;
+        std::cout << wp1.owner_before(wp2) << std::endl;
+        std::cout << !wp2.owner_before(wp1) << std::endl;
     }
 }
 

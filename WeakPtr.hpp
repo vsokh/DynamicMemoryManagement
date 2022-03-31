@@ -2,9 +2,7 @@
 
 #include "ControlBlock.hpp"
 
-// Observers:
 // TODO: owner_before: provides owner-based ordering of weak pointers
-
 // TODO: ensure correctness in a multi-threaded environment
 
 namespace base
@@ -92,6 +90,16 @@ namespace base
         std::size_t use_count() const noexcept
         {
             return details::use_count(_controlBlock);
+        }
+
+        bool owner_before(const SharedPtr<T>& rhs)
+        {
+            return _controlBlock < rhs._controlBlock;
+        }
+
+        bool owner_before(const WeakPtr<T>& rhs)
+        {
+            return _controlBlock < rhs._controlBlock;
         }
 
     private:

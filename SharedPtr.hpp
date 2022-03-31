@@ -108,6 +108,16 @@ namespace base
             std::swap(_controlBlock, rhs._controlBlock);
         }
 
+        bool owner_before(const SharedPtr& rhs)
+        {
+            return _controlBlock < rhs._controlBlock;
+        }
+
+        bool owner_before(const WeakPtr<T>& rhs)
+        {
+            return _controlBlock < rhs._controlBlock;
+        }
+
     private:
         void clear()
         {
