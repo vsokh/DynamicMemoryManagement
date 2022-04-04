@@ -5,104 +5,120 @@
 
 namespace details
 {
-    template<typename T>
-    using DeleterFunc = std::function<void(T*)>;
     using CounterType = std::size_t;
-
-    template<typename T, typename Deleter = DeleterFunc<T>>
     struct ControlBlock
     {
-        Deleter _deleter{};
-        std::atomic<CounterType> _sharedCounter{};
-        std::atomic<CounterType> _weakCounter{};
-        T *_obj{};
+        std::atomic<CounterType> _sharedCnt{};
+        std::atomic<CounterType> _weakCnt{};
+
+        ControlBlock(CounterType shared, CounterType weak)
+            : _sharedCnt{shared}, _weakCnt{weak}
+        {
+        }
+
+        virtual void onWeakZero() = 0;
+        virtual ~ControlBlock() = default;
     };
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    CounterType use_count(const ControlBlock<T, Deleter>* controlBlock)
+    template<typename T, typename Deleter>
+    struct ControlBlockPtr : public ControlBlock
     {
-        return controlBlock ? controlBlock->_sharedCounter.load() : 0;
+        T *_ptr{};
+        Deleter _deleter{};
+
+        ControlBlockPtr(T* ptr, Deleter deleter)
+            : ControlBlock{1, 1}, _ptr{ptr}, _deleter{deleter}
+        {
+        }
+
+        virtual void onWeakZero() override
+        {
+            if (_ptr) {
+                _deleter(_ptr);
+            }
+        }
+    };
+
+    CounterType use_count(const ControlBlock* cb)
+    {
+        return cb ? cb->_sharedCnt.load() : 0;
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    CounterType weak_use_count(const ControlBlock<T, Deleter>* controlBlock)
+    CounterType weak_use_count(const ControlBlock* cb)
     {
-        return controlBlock ? controlBlock->_weakCounter.load() : 0;
+        return cb ? cb->_weakCnt.load() : 0;
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void incrementWeak(ControlBlock<T, Deleter>* controlBlock)
+    void incrementWeak(ControlBlock* cb)
     {
-        if (weak_use_count(controlBlock)) {
-            ++controlBlock->_weakCounter;
+        if (weak_use_count(cb)) {
+            ++cb->_weakCnt;
+        }
+    }
+    void decrementWeak(ControlBlock* cb)
+    {
+        if (weak_use_count(cb)) {
+            --cb->_weakCnt;
         }
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void decrementWeak(ControlBlock<T, Deleter>* controlBlock)
+    void incrementShared(ControlBlock* cb)
     {
-        if (weak_use_count(controlBlock)) {
-            --controlBlock->_weakCounter;
+        if (use_count(cb)) {
+            ++cb->_sharedCnt;
+        }
+    }
+    void decrementShared(ControlBlock* cb)
+    {
+        if (use_count(cb)) {
+            --cb->_sharedCnt;
         }
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void incrementShared(ControlBlock<T, Deleter>* controlBlock)
+    void increment(ControlBlock* cb)
     {
-        if (use_count(controlBlock)) {
-            ++controlBlock->_sharedCounter;
+        incrementShared(cb);
+        incrementWeak(cb);
+    }
+    void decrement(ControlBlock* cb)
+    {
+        decrementShared(cb);
+        decrementWeak(cb);
+    }
+
+    void releaseObj(ControlBlock* cb)
+    {
+        if (cb && !use_count(cb)) {
+            cb->onWeakZero();
         }
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void decrementShared(ControlBlock<T, Deleter>* controlBlock)
+    void release(ControlBlock** cb)
     {
-        if (use_count(controlBlock)) {
-            --controlBlock->_sharedCounter;
+        if (*cb && !weak_use_count(*cb)) {
+            delete *cb; *cb = nullptr;
         }
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void increment(ControlBlock<T, Deleter>* controlBlock)
+    template<typename Deleter, typename Allocator>
+    decltype(auto) createControlBlock(std::nullptr_t, Deleter del, Allocator alloc)
     {
-        incrementShared(controlBlock);
-        incrementWeak(controlBlock);
+        auto ptr = alloc();
+        const auto& ptrAmnt = ptr != nullptr;
+        return new ControlBlockPtr<std::remove_pointer_t<decltype(ptr)>, Deleter>{del, ptrAmnt, ptrAmnt, ptr};
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void decrement(ControlBlock<T, Deleter>* controlBlock)
+    template<typename T, typename Deleter>
+    decltype(auto) createControlBlock(T* ptr, Deleter del)
     {
-        decrementShared(controlBlock);
-        decrementWeak(controlBlock);
+        const auto& ptrAmnt = ptr != nullptr;
+        return new ControlBlockPtr<T, Deleter>{del, ptrAmnt, ptrAmnt, ptr};
     }
 
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void releaseObj(ControlBlock<T, Deleter>* controlBlock)
+    template<typename T>
+    void deleter(T* toDelete)
     {
-        if (controlBlock && !use_count(controlBlock)) {
-            delete controlBlock->_obj; controlBlock->_obj = nullptr;
-        }
-    }
-
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    void release(ControlBlock<T, Deleter>** controlBlock)
-    {
-        if (*controlBlock && !weak_use_count(*controlBlock)) {
-            delete *controlBlock; *controlBlock = nullptr;
-        }
-    }
-
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    details::ControlBlock<T, Deleter>* createControlBlock(T* obj, Deleter deleter)
-    {
-        const auto& objAmount = obj != nullptr;
-        return new ControlBlock<T, Deleter>{std::move(deleter), objAmount, objAmount, obj};
-    }
-
-    template<typename T, typename Deleter = DeleterFunc<T>>
-    DeleterFunc<T> createDeleter()
-    {
-        return [](T* toDelete){ delete toDelete; };
+        delete toDelete;
     }
 
 } // namespace details

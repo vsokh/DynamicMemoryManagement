@@ -1,4 +1,4 @@
 #pragma once
 
-#include "SharedPtr.hpp"
-#include "WeakPtr.hpp"
+#include "shared_ptr.hpp"
+#include "weak_ptr.hpp"
