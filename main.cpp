@@ -13,6 +13,7 @@ struct Foo {
 void test_shared_ptr()
 {
     using namespace base;
+    std::cout << "shared_ptr" << std::endl;
     {
         std::cout << "default constructor: ";
         shared_ptr<Foo> sp;
@@ -125,16 +126,19 @@ void test_shared_ptr()
         std::cout << !sp2.owner_before(sp1) << std::endl;
     }
     {
-        shared_ptr<Foo> sp{new Foo{42},
-                          [](Foo* ptr){delete ptr;}};
-
+        std::cout << "allocator: ";
+        int val = 1;
+        shared_ptr<int> sp{nullptr,
+                                 [&val](int* i){std::cout << (*i == val) << std::endl; delete i;},
+                                 [&val](){return new int(val);}};
     }
+    std::cout << std::endl;
 }
 
 void test_weak_ptr()
 {
     using namespace base;
-
+    std::cout << "weak_ptr" << std::endl;
     {
         std::cout << "default constructor: ";
         weak_ptr<Foo> wp;
@@ -264,6 +268,7 @@ void test_weak_ptr()
         std::cout << wp1.owner_before(wp2) << ", ";
         std::cout << !wp2.owner_before(wp1) << std::endl;
     }
+    std::cout << std::endl;
 }
 
 int main()

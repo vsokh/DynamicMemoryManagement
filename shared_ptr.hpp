@@ -2,9 +2,8 @@
 
 #include "control_block.hpp"
 
-// TODO: support custom allocator
-// TODO: support arrays, operator[]
 // TODO: provide non-member functions
+// TODO: support arrays, operator[]
 // TODO: ensure correctness in a multi-threaded environment
 
 namespace base
@@ -25,9 +24,15 @@ namespace base
         }
 
         template<typename Deleter>
-        explicit shared_ptr(T *ptr, Deleter deleter)
+        shared_ptr(T *ptr, Deleter deleter)
                 : _ptr{ptr}
                 , _control_block{details::create_control_block(ptr, deleter)}
+        {
+        }
+        template<typename Deleter, typename Allocator>
+        shared_ptr(std::nullptr_t, Deleter deleter, Allocator alloc)
+                : _ptr{alloc()}
+                , _control_block{details::create_control_block(_ptr, deleter)}
         {
         }
         shared_ptr(const shared_ptr& rhs)
