@@ -7,4 +7,4 @@ include_directories(.)
 
 add_executable(memory
         main.cpp
-        Memory.hpp)
+        mem.hpp)

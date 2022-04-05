@@ -1,4 +1,4 @@
-#include "Memory.hpp"
+#include "mem.hpp"
 #include <iostream>
 
 // For testing
@@ -33,7 +33,13 @@ void test_shared_ptr()
         sp1 = sp2;
 
         std::cout << (2 == sp1.use_count()) << ", ";
-        std::cout << (2 == sp2.use_count()) << std::endl;
+        std::cout << (2 == sp2.use_count()) << ", ";
+
+        shared_ptr sp3{new Foo{testValue}};
+        shared_ptr sp4 = sp3;
+        std::cout << (2 == sp4.use_count()) << ", ";
+        sp4 = std::move(sp3);
+        std::cout << (1 == sp4.use_count()) << std::endl;
     }
     {
         std::cout << "self copy-assignment: ";
