@@ -3,9 +3,11 @@
 
 int main()
 {
-    string str{"hello"};
-    for (auto ch : str) {
-        std::cout << ch << std::endl;
-    }
+    string str{"hello "};
+    str.append("world", 2, 3);
+
+    std::cout << str.size() << std::endl;
+    std::cout << str.capacity() << std::endl;
+    std::cout << str.c_str() << std::endl;
     return 0;
 }
