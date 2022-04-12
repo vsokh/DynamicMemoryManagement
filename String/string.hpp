@@ -6,6 +6,20 @@
 // TODO: cbegin, cend
 // TODO: element access
 
+namespace utils {
+    template<typename CharT, typename Size>
+    void ncpy(CharT* dst, const CharT* src, Size count)
+    {
+        std::strncpy(dst, src, count);
+    }
+
+    template<typename CharT>
+    auto len(const CharT* str)
+    {
+        return std::strlen(str);
+    }
+}
+
 template<typename CharT>
 class basic_string {
 public:
@@ -13,11 +27,19 @@ public:
     static const Size buffer = sizeof(void*);
 
     explicit basic_string(const CharT *data)
-            : _size{std::strlen(data)}
+            : _size{utils::len(data)}
             , _capacity{std::max(sizeof(basic_string), _size)}
             , _data{new CharT[_capacity]}
     {
-        std::strcpy(_data, data);
+        utils::ncpy(_data, data, _size);
+    }
+
+    explicit basic_string(CharT data)
+            : _size{1}
+            , _capacity{sizeof(basic_string)}
+            , _data{new CharT[_capacity]}
+    {
+        utils::ncpy(_data, &data, _size);
     }
 
     basic_string(const basic_string &rhs)
@@ -25,7 +47,7 @@ public:
             , _capacity{rhs._capacity}
             , _data{new CharT[_capacity]}
     {
-        std::strcpy(_data, rhs._data);
+        utils::ncpy(_data, rhs._data, _size);
     }
 
     basic_string(basic_string &&rhs) noexcept
@@ -56,39 +78,30 @@ public:
 
     void append(const CharT* data, Size pos, Size count)
     {
-        auto oldSize = _size;
-        if (auto newSize = oldSize + count;
-                newSize >= _capacity) {
+        auto newSize = _size + count;
+        if (newSize >= _capacity) {
             auto newCapacity = newSize + buffer;
             auto tmpData = new CharT[newCapacity];
-            std::strcpy(tmpData, _data);
+            utils::ncpy(tmpData, _data, _size);
 
             delete[] _data;
             _data = tmpData;
-            _size = newSize;
             _capacity = newCapacity;
         }
         for (auto idx = 0; idx < count; ++idx) {
-            _data[oldSize + idx] = data[pos + idx];
+            _data[_size + idx] = data[pos + idx];
         }
+        _size = newSize;
     }
 
-    basic_string operator+(const CharT* data)
+    basic_string& operator+=(CharT rhs)
     {
-        basic_string tmp{*this};
-        tmp.append(data, 0, std::strlen(data));
-        return tmp;
+        append(&rhs, 0, 1);
+        return *this;
     }
-    basic_string operator+(const basic_string& rhs)
+    basic_string& operator+=(const CharT* rhs)
     {
-        basic_string tmp{*this};
-        tmp.append(rhs._data, 0, rhs._size);
-        return tmp;
-    }
-
-    basic_string& operator+=(const CharT* data)
-    {
-        append(data, 0, std::strlen(data));
+        append(rhs, 0, std::strlen(rhs));
         return *this;
     }
     basic_string& operator+=(const basic_string& rhs)
@@ -96,6 +109,7 @@ public:
         append(rhs._data, 0, rhs._size);
         return *this;
     }
+
     void swap(basic_string &rhs) noexcept
     {
         std::swap(_size, rhs._size);
@@ -103,7 +117,7 @@ public:
         std::swap(_data, rhs._data);
     }
 
-    bool empty() const noexcept
+    [[nodiscard]] bool empty() const noexcept
     {
         return _size == 0;
     }
@@ -113,12 +127,12 @@ public:
         return _data;
     }
 
-    Size size() const noexcept
+    [[nodiscard]] Size size() const noexcept
     {
         return _size;
     }
 
-    Size capacity() const noexcept
+    [[nodiscard]] Size capacity() const noexcept
     {
         return _capacity;
     }
@@ -173,9 +187,32 @@ public:
     }
 
 private:
-    Size _size;
-    Size _capacity;
+    Size _size{};
+    Size _capacity{};
     CharT* _data;
 };
+
+template<typename CharT>
+basic_string<CharT> operator+(const basic_string<CharT>& lhs,
+                              const basic_string<CharT>& rhs)
+{
+    basic_string tmp{lhs};
+    tmp.append(rhs.c_str(), 0, rhs.size());
+    return tmp;
+}
+
+template<typename CharT>
+basic_string<CharT> operator+(const basic_string<CharT>& lhs,
+                              const CharT* rhs)
+{
+    return lhs + basic_string{rhs};
+}
+
+template<typename CharT>
+basic_string<CharT> operator+(const basic_string<CharT>& lhs,
+                              const CharT rhs)
+{
+    return lhs + basic_string{rhs};
+}
 
 using string = basic_string<char>;
