@@ -56,6 +56,7 @@ public:
             , _data{rhs._data}
     {
         rhs._size = 0;
+        rhs._capacity = 0;
         rhs._data = nullptr;
     }
 
@@ -101,7 +102,7 @@ public:
     }
     basic_string& operator+=(const CharT* rhs)
     {
-        append(rhs, 0, std::strlen(rhs));
+        append(rhs, 0, utils::len(rhs));
         return *this;
     }
     basic_string& operator+=(const basic_string& rhs)
